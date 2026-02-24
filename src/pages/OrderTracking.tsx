@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 import { getOrderById } from '../services/api';
-import { socketService } from '../services/socket';
-
 import type { OrderStatus, Order } from '../types';
 
 import { APP_LABELS, STATUS_ICONS } from '../constants/appConstants';
@@ -49,22 +47,19 @@ export const OrderTracking = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
+  // Polling for order updates (temporary workaround for HTTPS/WSS issue)
   useEffect(() => {
-    if (orderId) {
-      socketService.connect();
-      socketService.joinOrder(orderId);
+    if (!orderId) return;
 
-      socketService.onOrderStatusUpdate((updatedOrder) => {
-        setData(updatedOrder);
-      });
+    const pollInterval = setInterval(() => {
+      fetchOrder();
+    }, 5000); // Poll every 5 seconds
 
-      return () => {
-        socketService.leaveOrder(orderId);
-        socketService.offOrderStatusUpdate();
-      };
-    }
+    return () => clearInterval(pollInterval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
+
+
 
   if (isLoading) {
     return (
