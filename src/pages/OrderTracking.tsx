@@ -20,10 +20,12 @@ export const OrderTracking = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrder = async () => {
+  const fetchOrder = async (showLoading = false) => {
     if (!orderId) return;
 
-    setIsLoading(true);
+    if (showLoading) {
+      setIsLoading(true);
+    }
     setError(null);
 
     try {
@@ -38,12 +40,14 @@ export const OrderTracking = () => {
       setError('Failed to load order');
       setData(null);
     } finally {
-      setIsLoading(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchOrder();
+    fetchOrder(true); // Show loading on initial fetch
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
@@ -52,7 +56,7 @@ export const OrderTracking = () => {
     if (!orderId) return;
 
     const pollInterval = setInterval(() => {
-      fetchOrder();
+      fetchOrder(false); // Don't show loading on polls
     }, 5000); // Poll every 5 seconds
 
     return () => clearInterval(pollInterval);
